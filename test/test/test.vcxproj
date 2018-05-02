@@ -151,6 +151,10 @@
     <ClCompile Include="i_func.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="o_func.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="io_func.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
