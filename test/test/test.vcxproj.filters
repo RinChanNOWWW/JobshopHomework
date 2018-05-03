@@ -23,7 +23,7 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="io_func.h">
+    <ClInclude Include="iofunc.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>
