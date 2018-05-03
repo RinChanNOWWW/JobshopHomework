@@ -1,5 +1,5 @@
 /**
- * @brief 提供基本的数据类型
+ * @brief 提供基本的数据类型与操作
  *
  * @file base.h
  * @author Hzy & Gxz
