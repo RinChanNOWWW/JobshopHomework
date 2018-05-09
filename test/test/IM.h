@@ -63,4 +63,5 @@ void time_calculate(machine* MO[MAX]);
  * 销毁数组存储的链表
  */
 void delete_MO(machine* MO[MAX], int M_amount);
+
 #endif // !_IM_H_
