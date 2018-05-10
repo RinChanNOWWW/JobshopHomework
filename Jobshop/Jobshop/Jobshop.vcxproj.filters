@@ -14,10 +14,10 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\..\base.h">
+    <ClInclude Include="base.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\gene.h">
+    <ClInclude Include="gene.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>

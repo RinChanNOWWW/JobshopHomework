@@ -27,6 +27,9 @@ int getCmax(int* chromo);
 /* select */
 
 
+
+
+
 /* cross */
 
 
