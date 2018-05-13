@@ -46,8 +46,19 @@ void deletePopulation(int** poputation)
 		free(poputation[i]);
 	free(poputation);
 }
-int** nextPopulation(int** oldpopulation)
+int** nextPopulation(int** oldpopulation, int machine, int job, int all_operation)
 {
+	int elite;
+	elite = e_select(oldpopulation, machine, job, all_operation);
+	int** nextPopulation;
+	nextPopulation = (int**)malloc(sizeof(int*) * Max_Population);
+	int i;
+	for (i = 0; i < Max_Population; i++) {
+		if (i == elite || i == roulette_select(oldpopulation, machine, job, all_operation))
+			nextPopulation[i] = oldpopulation[i];
+		else
+			nextPopulation[i] = NULL;
+	}
 
 }
 /* get Cmax */
@@ -206,15 +217,20 @@ int roulette_select(int** population, int machine, int job, int all_operation)
 	for (i = 1; i < Max_Population; i++) {
 		P[i] = P[i - 1] + (double)(Cmax_sum - Cmax[i]) / Cmax_sum;
 	}
+	free(Cmax);
 	srand(clock());
 	double r;
 	r = ((double)(rand() % 10000)) / 10000;
-	if (r < P[0])
+	if (r < P[0]) {
+		free(P);
 		return 0;
+	}
 	else {
 		for (i = 1; i < Max_Population; i++) {
-			if (r > P[i - 1] && r < P[i])
+			if (r > P[i - 1] && r < P[i]) {
+				free(P);
 				return i;
+			}
 		}
 	}
 }

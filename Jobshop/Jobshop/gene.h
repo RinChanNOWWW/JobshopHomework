@@ -22,7 +22,7 @@ int * creatChromo(All_job require, int all_operation);
 /* population */
 int** newPopulation(All_job require);
 void deletePopulation(int** population);
-int** nextPopulation(int** oldpopulation);
+int** nextPopulation(int** oldpopulation, int machine, int job, int all_operation);
 /* get Cmax */
 int getCmax(int* chromo, int machine, int job, int all_operation);
 int getIndex(int* chromo, int i);
