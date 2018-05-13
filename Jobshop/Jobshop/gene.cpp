@@ -23,7 +23,7 @@ int * creatChromo(All_job require, int all_operation)
 		}
 }
 
-/* poputation */
+/* poputlation */
 int** newPopulation(All_job require)
 {
 	int all_operation = 0;
@@ -31,20 +31,20 @@ int** newPopulation(All_job require)
 	for (i = 0; i < require.job_amount; i++)
 		all_operation += require.operation_amount[i];
 	int* chromo = NULL;
-	int** poputation = (int **)malloc(sizeof(int *) * POPULATION);
+	int** population = (int **)malloc(sizeof(int *) * POPULATION);
 	for (i = 0; i < POPULATION; i++) {
 		creatChromo(require, all_operation);
 		random_shuffle(chromo, all_operation);
-		poputation[i] = chromo;
+		population[i] = chromo;
 	}
-	return poputation;
+	return population;
 }
-void deletePopulation(int** poputation)
+void deletePopulation(int** population)
 {
 	int i, j;
 	for (i = 0; i < POPULATION; i++)
-		free(poputation[i]);
-	free(poputation);
+		free(population[i]);
+	free(population);
 }
 int** nextPopulation(int** oldpopulation, int machine, int job, int all_operation)
 {
@@ -187,14 +187,14 @@ void mutation(int* chromo, int all_operation)
 }
 
 /* select */
-int e_select(int** poputation, int machine, int job, int all_operation)
+int e_select(int** population, int machine, int job, int all_operation)
 {
 	int i;
 	int elite;
-	int best_fitness = getCmax(poputation[0], machine, job, all_operation);
+	int best_fitness = getCmax(population[0], machine, job, all_operation);
 	int fitness;
 	for (i = 0; i < Max_Population; i++) {
-		fitness = getCmax(poputation[i], machine, job, all_operation);
+		fitness = getCmax(population[i], machine, job, all_operation);
 		if (fitness < best_fitness) {
 			best_fitness = fitness;
 			elite = i;
