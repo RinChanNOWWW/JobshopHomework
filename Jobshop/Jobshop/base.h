@@ -24,8 +24,5 @@ typedef struct {
 } All_job;
 
 /* machine and time */
-int MachineNum[MAX_MATRIX][MAX_MATRIX];
-int Time[MAX_MATRIX][MAX_MATRIX];
-
 
 #endif // !_BASE_H_

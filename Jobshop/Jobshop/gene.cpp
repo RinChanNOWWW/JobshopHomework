@@ -11,6 +11,9 @@
 #include <time.h>
 #include "gene.h"
 
+extern int MachineNum[MAX_MATRIX][MAX_MATRIX];
+extern int Time[MAX_MATRIX][MAX_MATRIX];
+
 /* chromosome */
 int * creatChromo(All_job require, int all_operation)
 {
@@ -21,28 +24,29 @@ int * creatChromo(All_job require, int all_operation)
 			chromo[k] = i + 1;
 			k++;
 		}
+	return chromo;
 }
 
 /* poputlation */
-int** newPopulation(All_job require)
+int** newPopulation(All_job require, int* all_operation)
 {
-	int all_operation = 0;
-	int i, j, k = 0;
+	*all_operation = 0;
+	int i, k = 0;
 	for (i = 0; i < require.job_amount; i++)
-		all_operation += require.operation_amount[i];
+		*all_operation += require.operation_amount[i];
 	int* chromo = NULL;
-	int** population = (int **)malloc(sizeof(int *) * POPULATION);
-	for (i = 0; i < POPULATION; i++) {
-		creatChromo(require, all_operation);
-		random_shuffle(chromo, all_operation);
+	int** population = (int **)malloc(sizeof(int *) * Max_Population);
+	for (i = 0; i < Max_Population; i++) {
+		creatChromo(require, *all_operation);
+		random_shuffle(chromo, *all_operation);
 		population[i] = chromo;
 	}
 	return population;
 }
 void deletePopulation(int** population)
 {
-	int i, j;
-	for (i = 0; i < POPULATION; i++)
+	int i;
+	for (i = 0; i < Max_Population; i++)
 		free(population[i]);
 	free(population);
 }
@@ -53,13 +57,26 @@ int** nextPopulation(int** oldpopulation, int machine, int job, int all_operatio
 	int** nextPopulation;
 	nextPopulation = (int**)malloc(sizeof(int*) * Max_Population);
 	int i;
-	for (i = 0; i < Max_Population; i++) {
-		if (i == elite || i == roulette_select(oldpopulation, machine, job, all_operation))
-			nextPopulation[i] = oldpopulation[i];
-		else
-			nextPopulation[i] = NULL;
+	int j;
+	nextPopulation[0] = oldpopulation[elite];
+	for (i = 1; i < Max_Population; i++) {
+		j = roulette_select(oldpopulation, machine, job, all_operation);
+		nextPopulation[i] = oldpopulation[j];
 	}
-
+	srand(clock());
+	double p;
+	for (i = 1; i < Max_Population; i = i + 2) {
+		p = ((double)(rand() % 1000)) / 1000;
+		if (p < Px)
+			order_crossover(&nextPopulation[i], &nextPopulation[i + 1], all_operation);
+	}
+	for (i = 1; i < Max_Population; i++) {
+		p = ((double)(rand() % 1000)) / 1000;
+		if (p < Pm)
+			mutation(nextPopulation[i], all_operation);
+	}
+	deletePopulation(oldpopulation);
+	return nextPopulation;
 }
 /* get Cmax */
 int getIndex(int* chromo, int i)
@@ -76,7 +93,7 @@ int getCmax(int* chromo, int machine, int job, int all_operation)
 	int machineEndTime[Max_Length];
 	int jobEndTime[MAX_LEN];
 
-	int i, j;
+	int i;
 	int machine_num;
 	int used_time;
 	int index;
@@ -101,7 +118,7 @@ int getCmax(int* chromo, int machine, int job, int all_operation)
 }
 
 /* crossover */
-int* order_crossover(int* p1, int* p2, int all_operation, int n)
+void order_crossover(int** p1, int** p2, int all_operation)
 {
 	int* child1 = NULL;
 	int* child2 = NULL;
@@ -128,19 +145,19 @@ int* order_crossover(int* p1, int* p2, int all_operation, int n)
 	index1 = (int *)malloc(sizeof(int) * (j - i + 1));
 	index2 = (int *)malloc(sizeof(int) * (j - i + 1));
 	for (k = 0; k < j - i + 1; k++) {
-		index1[k] = getIndex(p1, i + k);
-		index2[k] = getIndex(p2, i + k);
+		index1[k] = getIndex(*p1, i + k);
+		index2[k] = getIndex(*p2, i + k);
 	}
 	for (k = i; k <= j; k++) {
-		child1[k] = p1[k];
-		child2[k] = p2[k];
+		child1[k] = *p1[k];
+		child2[k] = *p2[k];
 	}
 	int s = 0;
 	for (k = j + 1; k <= i - 1; k++) {
 		if (k >= all_operation)
 			k = 0;
-		temp1[s] = p1[k];
-		temp2[s] = p2[k];
+		temp1[s] = *p1[k];
+		temp2[s] = *p2[k];
 		s++;
 	}
 	int n;
@@ -171,9 +188,9 @@ int* order_crossover(int* p1, int* p2, int all_operation, int n)
 	}
 	free(index1); free(index2); free(temp1); free(temp2); 
 	temp1 = NULL; temp2 = NULL; index1 = NULL;index2 = NULL;
-	if (n == 1)
-		return child1;
-	return child2;
+	free(p1); free(p2);
+	*p1 = child1;
+	*p2 = child2;
 }
 
 /* mutation */
@@ -225,12 +242,11 @@ int roulette_select(int** population, int machine, int job, int all_operation)
 		free(P);
 		return 0;
 	}
-	else {
-		for (i = 1; i < Max_Population; i++) {
-			if (r > P[i - 1] && r < P[i]) {
-				free(P);
-				return i;
-			}
+	for (i = 1; i < Max_Population; i++) {
+		if (r > P[i - 1] && r < P[i]) {
+			free(P);
+			break;
 		}
 	}
+	return i;
 }

@@ -1,7 +1,9 @@
 /**
+ * def of base.h
  *
- *
- *
+ * base.c
+ * by Hzy
+ * 2018-5-10
  */
 #include <time.h>
 #include <stdlib.h>
@@ -15,6 +17,7 @@ void exchange(int* a, int* b)
 	*a = *b;
 	*b = temp;
 }
+
 int getMax(int a, int b)
 {
 	if (a > b)
