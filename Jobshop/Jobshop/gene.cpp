@@ -6,6 +6,7 @@
  * 2018-5-12
  */
 #pragma once
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
@@ -37,7 +38,7 @@ int** newPopulation(All_job require, int* all_operation)
 	int* chromo = NULL;
 	int** population = (int **)malloc(sizeof(int *) * Max_Population);
 	for (i = 0; i < Max_Population; i++) {
-		creatChromo(require, *all_operation);
+		chromo = creatChromo(require, *all_operation);
 		random_shuffle(chromo, *all_operation);
 		population[i] = chromo;
 	}
@@ -53,22 +54,23 @@ void deletePopulation(int** population)
 int** nextPopulation(int** oldpopulation, int machine, int job, int all_operation)
 {
 	int elite;
+	int i;
+	int j;
 	elite = e_select(oldpopulation, machine, job, all_operation);
 	int** nextPopulation;
 	nextPopulation = (int**)malloc(sizeof(int*) * Max_Population);
-	int i;
-	int j;
-	nextPopulation[0] = oldpopulation[elite];
+	for (i = 0; i < Max_Population; i++)
+		nextPopulation[i] = (int *)malloc(sizeof(int) * all_operation);
+	arrayCopy(nextPopulation[0], oldpopulation[elite], all_operation);
 	for (i = 1; i < Max_Population; i++) {
 		j = roulette_select(oldpopulation, machine, job, all_operation);
-		nextPopulation[i] = oldpopulation[j];
+		arrayCopy(nextPopulation[i], oldpopulation[j], all_operation);
 	}
-	srand(clock());
 	double p;
 	for (i = 1; i < Max_Population; i = i + 2) {
 		p = ((double)(rand() % 1000)) / 1000;
-		if (p < Px)
-			order_crossover(&nextPopulation[i], &nextPopulation[i + 1], all_operation);
+		if (p < Px && ((i + 1) < Max_Population))
+			order_crossover(nextPopulation[i], nextPopulation[i + 1], all_operation);
 	}
 	for (i = 1; i < Max_Population; i++) {
 		p = ((double)(rand() % 1000)) / 1000;
@@ -118,21 +120,22 @@ int getCmax(int* chromo, int machine, int job, int all_operation)
 }
 
 /* crossover */
-void order_crossover(int** p1, int** p2, int all_operation)
+void order_crossover(int* p1, int* p2, int all_operation)
 {
+	int i, j, k;
+	int t;
 	int* child1 = NULL;
 	int* child2 = NULL;
 	int* temp1 = NULL;
 	int* temp2 = NULL;
 	int* index1 = NULL;
 	int* index2 = NULL;
+	int* indext1 = NULL;
+	int* indext2 = NULL;
 	child1 = (int *)malloc(sizeof(int) * all_operation);
 	child2 = (int *)malloc(sizeof(int) * all_operation);
 	temp1 = (int *)malloc(sizeof(int) * all_operation);
 	temp2 = (int *)malloc(sizeof(int) * all_operation);
-	int i, j, k;
-	int t;
-	srand(clock());
 	i = rand() % all_operation;
 	j = rand() % all_operation;
 	while (i == j)
@@ -144,60 +147,102 @@ void order_crossover(int** p1, int** p2, int all_operation)
 	}
 	index1 = (int *)malloc(sizeof(int) * (j - i + 1));
 	index2 = (int *)malloc(sizeof(int) * (j - i + 1));
+	indext1 = (int *)malloc(sizeof(int) * all_operation);
+	indext2 = (int *)malloc(sizeof(int) * all_operation);
 	for (k = 0; k < j - i + 1; k++) {
-		index1[k] = getIndex(*p1, i + k);
-		index2[k] = getIndex(*p2, i + k);
+		index1[k] = getIndex(p1, i + k);
+		index2[k] = getIndex(p2, i + k);
 	}
 	for (k = i; k <= j; k++) {
-		child1[k] = *p1[k];
-		child2[k] = *p2[k];
+		child1[k] = p1[k];
+		child2[k] = p2[k];
 	}
 	int s = 0;
-	for (k = j + 1; k <= i - 1; k++) {
-		if (k >= all_operation)
-			k = 0;
-		temp1[s] = *p1[k];
-		temp2[s] = *p2[k];
-		s++;
+	for (k = j + 1; k <= all_operation + j; k++) {
+		if (k >= all_operation) {
+			temp1[s] = p1[k - all_operation];
+			temp2[s] = p2[k - all_operation];
+			s++;
+		}
+		else {
+			temp1[s] = p1[k];
+			temp2[s] = p2[k];
+			s++;
+		}
+	}
+	for (k = 0; k < all_operation; k++) {
+		indext1[k] = getIndex(temp1, k);
+		indext2[k] = getIndex(temp2, k);
 	}
 	int n;
 	for (k = 0; k < all_operation; k++) 
 		for (n = 0; n < j - i + 1; n++) {
-			if (temp1[k] == child1[n + i] && getIndex(temp1, k))
+			if (temp1[k] == child1[n + i] && (index1[n] == indext1[k]))
 				temp1[k] = 0;
-			if (temp2[k] == child2[n + i] && getIndex(temp2, k))
+			if (temp2[k] == child2[n + i] && (index2[n] == indext2[k]))
 				temp2[k] = 0;
 		}
 	int s1 = 0;
 	int s2 = 0;
-	for (k = j + 1; k <= i - 1; k++) {
-		if (k > all_operation)
-			k = 0;
-		if (temp1[s1] == 0)
-			s1++;
-		else {
-			child1[k] = temp1[s1];
-			s1++;
+	for (k = j + 1; k <= all_operation + i - 1; k++) {
+		if (k >= all_operation) {
+			if (temp1[s1] == 0) {
+				s1++;
+				k = k - 1;
+				continue;
+			}
+			else {
+				child1[k - all_operation] = temp1[s1];
+				s1++;
+			}
 		}
-		if (temp2[s2] == 0)
-			s2++;
 		else {
-			child2[k] = temp2[s2];
-			s2++;
+			if (temp1[s1] == 0) {
+				s1++;
+				k = k - 1;
+				continue;
+			}
+			else {
+				child1[k] = temp1[s1];
+				s1++;
+			}
 		}
 	}
-	free(index1); free(index2); free(temp1); free(temp2); 
-	temp1 = NULL; temp2 = NULL; index1 = NULL;index2 = NULL;
-	free(p1); free(p2);
-	*p1 = child1;
-	*p2 = child2;
+	for (k = j + 1; k <= all_operation + i - 1; k++) {
+		if (k >= all_operation) {
+			if (temp2[s2] == 0) {
+				s2++;
+				k = k - 1;
+				continue;
+			}
+			else {
+				child2[k - all_operation] = temp2[s2];
+				s2++;
+			}
+		}
+		else {
+			if (temp2[s2] == 0) {
+				s2++;
+				k = k - 1;
+				continue;
+			}
+			else {
+				child2[k] = temp2[s2];
+				s2++;
+			}
+		}
+	}
+	free(index1); free(index2); free(temp1); free(temp2); free(indext1); free(indext2);
+	temp1 = NULL; temp2 = NULL; index1 = NULL; index2 = NULL; indext1 = NULL; indext2 = NULL;
+	arrayCopy(p1, child1, all_operation);
+	arrayCopy(p2, child2, all_operation);
+	free(child1); free(child2);
 }
 
 /* mutation */
 void mutation(int* chromo, int all_operation)
 {
 	int i, j;
-	srand(clock());
 	i = rand() % all_operation;
 	j = rand() % all_operation;
 	exchange(&chromo[i], &chromo[j]);
@@ -206,8 +251,8 @@ void mutation(int* chromo, int all_operation)
 /* select */
 int e_select(int** population, int machine, int job, int all_operation)
 {
-	int i;
-	int elite;
+	int i, j;
+	int elite = 0;
 	int best_fitness = getCmax(population[0], machine, job, all_operation);
 	int fitness;
 	for (i = 0; i < Max_Population; i++) {
@@ -230,12 +275,13 @@ int roulette_select(int** population, int machine, int job, int all_operation)
 		Cmax[i] = getCmax(population[i], machine, job, all_operation);
 		Cmax_sum += Cmax[i];
 	}
-	P[0] = ((double)(Cmax_sum - Cmax[0])) / Cmax_sum;
+	int Cmax_sum_differ;
+	Cmax_sum_differ = (Max_Population - 1) * Cmax_sum;
+	P[0] = ((double)(Cmax_sum - Cmax[0])) / Cmax_sum_differ;
 	for (i = 1; i < Max_Population; i++) {
-		P[i] = P[i - 1] + (double)(Cmax_sum - Cmax[i]) / Cmax_sum;
+		P[i] = P[i - 1] + ((double)(Cmax_sum - Cmax[i])) / Cmax_sum_differ;
 	}
 	free(Cmax);
-	srand(clock());
 	double r;
 	r = ((double)(rand() % 10000)) / 10000;
 	if (r < P[0]) {

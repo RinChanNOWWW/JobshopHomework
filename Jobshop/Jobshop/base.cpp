@@ -29,11 +29,17 @@ int getMax(int a, int b)
 void random_shuffle(int* a, int n)
 {
 	int index, i;
-	srand(clock());
 	for (i = 0; i < n; i++) {
 		index = rand() % (n - i) + i;
 		if (index != i) {
 			exchange(&a[i], &a[index]);
 		}
 	}
+}
+
+void arrayCopy(int * destination, int * source, int n)
+{
+	int i;
+	for (i = 0; i < n; i++)
+		destination[i] = source[i];
 }

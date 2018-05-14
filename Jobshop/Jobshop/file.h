@@ -15,6 +15,6 @@
 void input(All_job * job);
 
 /* contemp output func */
-int output(int ** population, int machine, int job, int all_operation);
+void output(int ** population, int machine, int job, int all_operation);
 
 #endif // !_FILE_H_

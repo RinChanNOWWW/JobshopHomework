@@ -25,11 +25,11 @@ void input(All_job * job)
 			scanf("%d %d", &MachineNum[i][j], &Time[i][j]);
 }
 
-int output(int ** population, int machine, int job, int all_operation)
+void output(int ** population, int machine, int job, int all_operation)
 {
 	int elite;
 	elite = e_select(population, machine, job, all_operation);
 	int ans;
 	ans = getCmax(population[elite], machine, job, all_operation);
-	return ans;
+	printf("%d\n", ans);
 }

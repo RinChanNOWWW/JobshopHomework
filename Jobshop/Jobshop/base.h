@@ -15,6 +15,7 @@
 void exchange(int* a, int* b);
 void random_shuffle(int* a, int n);
 int getMax(int a, int b);
+void arrayCopy(int * destination, int * source, int n);
 
 /* the whole job */
 typedef struct {
