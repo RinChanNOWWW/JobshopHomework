@@ -9,8 +9,8 @@
 #ifndef _BASE_H_
 #define _BASE_H_
 
-#define MAX_LEN 20
-#define MAX_MATRIX 20
+#define MAX_LEN 100
+#define MAX_MATRIX 100
 
 void exchange(int* a, int* b);
 void random_shuffle(int* a, int n);

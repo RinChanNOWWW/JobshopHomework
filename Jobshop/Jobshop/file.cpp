@@ -12,6 +12,7 @@
 
 int MachineNum[MAX_MATRIX][MAX_MATRIX];
 int Time[MAX_MATRIX][MAX_MATRIX];
+extern int best_fitness;
 
 void input(All_job * job)
 {
@@ -27,9 +28,9 @@ void input(All_job * job)
 
 void output(int ** population, int machine, int job, int all_operation)
 {
-	int elite;
-	elite = e_select(population, machine, job, all_operation);
-	int ans;
-	ans = getCmax(population[elite], machine, job, all_operation);
-	printf("%d\n", ans);
+	//int elite;
+	//elite = e_select(population, machine, job, all_operation);
+	//int ans;
+	//ans = getCmax(population[elite], machine, job, all_operation);
+	printf("%d\n", best_fitness);
 }

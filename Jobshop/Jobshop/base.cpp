@@ -9,6 +9,7 @@
 #include <stdlib.h>
 #include "base.h"
 #include "gene.h"
+extern int best_fitness;
 
 void exchange(int* a, int* b)
 {

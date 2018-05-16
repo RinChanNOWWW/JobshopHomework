@@ -14,6 +14,7 @@
 
 extern int MachineNum[MAX_MATRIX][MAX_MATRIX];
 extern int Time[MAX_MATRIX][MAX_MATRIX];
+int best_fitness = 0x3f3f3f3f;
 
 /* chromosome */
 int * creatChromo(All_job require, int all_operation)
@@ -67,10 +68,16 @@ int** nextPopulation(int** oldpopulation, int machine, int job, int all_operatio
 		arrayCopy(nextPopulation[i], oldpopulation[j], all_operation);
 	}
 	double p;
-	for (i = 1; i < Max_Population; i = i + 2) {
+	/*for (i = 1; i < Max_Population; i = i + 2) {
 		p = ((double)(rand() % 1000)) / 1000;
 		if (p < Px && ((i + 1) < Max_Population))
 			order_crossover(nextPopulation[i], nextPopulation[i + 1], all_operation);
+	}*/
+	for (i = 1; i < Max_Population; i = i + 1) {
+		p = ((double)(rand() % 1000)) / 1000;
+		j = rand() % all_operation;
+		if (p < Px && i < j)
+			order_crossover(nextPopulation[i], nextPopulation[j], all_operation);
 	}
 	for (i = 1; i < Max_Population; i++) {
 		p = ((double)(rand() % 1000)) / 1000;
@@ -253,7 +260,6 @@ int e_select(int** population, int machine, int job, int all_operation)
 {
 	int i, j;
 	int elite = 0;
-	int best_fitness = getCmax(population[0], machine, job, all_operation);
 	int fitness;
 	for (i = 0; i < Max_Population; i++) {
 		fitness = getCmax(population[i], machine, job, all_operation);

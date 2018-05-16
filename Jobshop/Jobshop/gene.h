@@ -11,11 +11,11 @@
 
 #include "base.h"
 
-#define Max_Length 20  // contemp
-#define Max_Population 10 // contempss
+#define Max_Length 100 // contemp
+#define Max_Population 100 // contempss
 #define Px 0.95
-#define Pm 0.02
-#define ITRATE 100
+#define Pm 0.05
+#define ITRATE 2000
 
 /* chromosome */
 int * creatChromo(All_job require, int all_operation);

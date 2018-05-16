@@ -14,6 +14,7 @@
 
 extern int MachineNum[MAX_MATRIX][MAX_MATRIX];
 extern int Time[MAX_MATRIX][MAX_MATRIX];
+extern int best_fitness;
 
 int main(void)
 {
