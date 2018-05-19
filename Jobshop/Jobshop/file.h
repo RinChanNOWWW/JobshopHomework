@@ -13,8 +13,8 @@
 
 /* contemp input func */
 void input(All_job * job);
-
+void read_from_file(All_job * job);
 /* contemp output func */
-void output(int ** population, int machine, int job, int all_operation);
-
+void output(int * elite, int machine, int job, int all_operation);
+void output_to_file(int * elite, int machine, int job, int all_operation);
 #endif // !_FILE_H_

@@ -15,22 +15,31 @@
 extern int MachineNum[MAX_MATRIX][MAX_MATRIX];
 extern int Time[MAX_MATRIX][MAX_MATRIX];
 extern int best_fitness;
+extern int elite;
 
 int main(void)
 {
+	srand(clock());
+	clock_t start, end;
+	double t;
 	All_job job;
-	input(&job);
-	int i, j;
+	//input(&job);
+	read_from_file(&job);
+	start = clock();
+	int i;
 	int** Population;
 	int all_operation;
     Population = newPopulation(job, &all_operation);
-	printf("\n\n");
 	for (i = 1; i <= ITRATE; i++) {
 		Population = nextPopulation(Population, job.machine_amount, job.job_amount, all_operation);
-		output(Population, job.machine_amount, job.job_amount, all_operation);
-		printf("\n");
+		//printf("%d\n", best_fitness);
 	}
+	printf("结果输出如下:\n");
+	output(Population[elite], job.machine_amount, job.job_amount, all_operation);
 	deletePopulation(Population);
+	end = clock();
+	t = (double)(end - start) / CLOCKS_PER_SEC;
+	printf("%lf", t);
 	system("pause");
 	return 0;
 }

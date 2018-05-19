@@ -9,8 +9,8 @@
 #ifndef _BASE_H_
 #define _BASE_H_
 
-#define MAX_LEN 100
-#define MAX_MATRIX 100
+#define MAX_LEN 200
+#define MAX_MATRIX 200
 
 void exchange(int* a, int* b);
 void random_shuffle(int* a, int n);
@@ -24,6 +24,10 @@ typedef struct {
 	int operation_amount[MAX_LEN];
 } All_job;
 
-/* machine and time */
-
+typedef struct {
+	int begin;
+	int end;
+	int job;
+	int operation;
+} Result;
 #endif // !_BASE_H_
