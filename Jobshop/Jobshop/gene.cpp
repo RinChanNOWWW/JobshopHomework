@@ -5,23 +5,32 @@
  * by Hzy
  * 2018-5-12
  */
+
 #pragma once
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
 #include "gene.h"
 
-extern int MachineNum[MAX_MATRIX][MAX_MATRIX];
-extern int Time[MAX_MATRIX][MAX_MATRIX];
-int Cmax[Max_Length];
-int Cmax_sum;
-int best_fitness = INT_MAX;
-int elite;
+extern int MachineNum[MAX_MATRIX][MAX_MATRIX];     //见file.cpp
+extern int Time[MAX_MATRIX][MAX_MATRIX];           //见file.cpp
+int Cmax[Max_Length];                              //一个种群每个个体的加工时间
+int Cmax_sum;                                      //总加工时间
+int best_fitness = INT_MAX;                        //最优解
+int elite;                                         //精英所在位置
 
-/* chromosome */
+/**
+ * 创建一个编码染色体
+ *
+ * require 作业需求结构体
+ * all_operation 总工序数
+ * return 指向此染色体的指针
+ */
 int * creatChromo(All_job require, int all_operation)
 {
+	/* 根据输入的数据编码 */
 	int* chromo = (int *)malloc(sizeof(int) * all_operation);
 	int i, j, k = 0;
 	for (i = 0; i < require.job_amount; i++)
@@ -32,58 +41,81 @@ int * creatChromo(All_job require, int all_operation)
 	return chromo;
 }
 
-/* poputlation */
+/**
+ * 创建并初始化一个种群
+ *
+ * require 作业需求结构体
+ * all_operation 指向总工序数的指针
+ * return 指向此种群的指针
+ */
 int** newPopulation(All_job require, int* all_operation)
 {
-	*all_operation = 0;
+	*all_operation = 0;     //初始化清零
 	int i, k = 0;
 	for (i = 0; i < require.job_amount; i++)
 		*all_operation += require.operation_amount[i];
 	int* chromo = NULL;
 	int** population = (int **)malloc(sizeof(int *) * Max_Population);
 	for (i = 0; i < Max_Population; i++) {
-		chromo = creatChromo(require, *all_operation);
-		random_shuffle(chromo, *all_operation);
-		population[i] = chromo;
+		chromo = creatChromo(require, *all_operation);     //产生一个染色体
+		random_shuffle(chromo, *all_operation);            //随机打乱这个染色体
+		population[i] = chromo;                            //录入种群
 	}
 	return population;
 }
+
+/**
+ * 销毁种群
+ *
+ * population 指向一个种群的指针
+ */
 void deletePopulation(int** population)
 {
+	/* free一个二维数组 */
 	int i;
 	for (i = 0; i < Max_Population; i++)
 		free(population[i]);
 	free(population);
 }
+
+/**
+ * 更新种群（进化）
+ *
+ * oldpopulation 指向老种群（父代（的指针
+ * machine 总机器数
+ * job 总工件数
+ * all_operation 总工序数
+ * return 指向新种群（子代）的指针
+ */
 int** nextPopulation(int** oldpopulation, int machine, int job, int all_operation)
 {
-	memset(Cmax, 0, Max_Population);
+	memset(Cmax, 0, Max_Population); //初始化清零 
 	int i, j;
-	best_fitness = 0x3f3f3f3f;
-	/* next population*/
+	/* 动态生成新种群的二位数组 */
 	int** nextPopulation;
 	nextPopulation = (int**)malloc(sizeof(int*) * Max_Population);
 	for (i = 0; i < Max_Population; i++)
 		nextPopulation[i] = (int *)malloc(sizeof(int) * all_operation);
-	/* select elite */
+	/* 生成加工时间（适应度）数组 */
 	Cmax_sum = 0;
 	int runtime;
-	//elite = e_select(oldpopulation, all_operation);
 	for (i = 0; i < Max_Population; i++) {
 		Cmax[i] = getCmax(oldpopulation[i], all_operation);
 		Cmax_sum += Cmax[i];
-		if (Cmax[i] < best_fitness) {
-			best_fitness = Cmax[i];
+		if (Cmax[i] < best_fitness) {        //选出精英
+			best_fitness = Cmax[i];          //更新最优解
 			elite = i;
 		}
 	}
+	/* 保留精英 */
 	arrayCopy(nextPopulation[0], oldpopulation[elite], all_operation);
-	/* roulette */
+	/* 产生轮赌盘 */
 	double * P = roulette(oldpopulation, all_operation);
-	double pick;
-	for (i = 1; i < Max_Population; i++) {
+	/* 利用轮赌盘从老种群（父代）选择子代录入新种群（子代） */
+	double pick;     //选择概率
+	for (i = 1; i < Max_Population; i++) {     //精英不被操作
 		int flag = 0;
-		pick = ((double)rand()) / RAND_MAX;
+		pick = ((double)rand()) / RAND_MAX;    //随机生成概率
 		for (j = 0; j < Max_Population; j++) {
 			if (pick < P[j]) {
 				arrayCopy(nextPopulation[i], oldpopulation[j], all_operation);
@@ -91,28 +123,42 @@ int** nextPopulation(int** oldpopulation, int machine, int job, int all_operatio
 				break;
 			}
 		}
-		if (flag == 0)
+		if (flag == 0)    //如果有遗漏则录入精英
 			arrayCopy(nextPopulation[i], oldpopulation[elite], all_operation);
 	}
+	/* 销毁轮赌盘 */
 	free(P);
+	/* 按概率交叉 */
 	double p;
 	for (i = 1; i < Max_Population - 1; i = i + 2) {
-		p = ((double)rand()) / RAND_MAX;
-		if (p < Px) {
+		p = ((double)rand()) / RAND_MAX;       //随机生成交叉概率
+		if (p < Px) {   /* 前后两两交叉 */
 			order_crossover(nextPopulation[i], nextPopulation[i + 1], all_operation);
 		}
 			
 	}
+	/* 按概率变异 */
 	for (i = 1; i < Max_Population; i++) {
 		p = ((double)rand()) / RAND_MAX;
 		if (p < Pm)
 			mutation(nextPopulation[i], all_operation);
 	}
+	/* 销毁老种群（父代） */
 	deletePopulation(oldpopulation);
+	/* 返回新种群（子代） */
 	return nextPopulation;
 }
+
+/**
+ * 计算此编码染色体对应的加工时间
+ *
+ * chromo[] 编码染色体
+ * all_operation 总工序数
+ * return 加工时间
+ */
 int getCmax(int* chromo, int all_operation)
 {
+	/* 同file.cpp中函数output_to_file中的初始解码操作 */
 	int machineEndTime[Max_Length];
 	int jobEndTime[Max_Length];
 	int index[Max_Length];
@@ -132,8 +178,10 @@ int getCmax(int* chromo, int all_operation)
 		index[jobNum]++;
 		operationNum = index[chromo[i]];
 		machineNum = MachineNum[jobNum][operationNum];
+		/* 找出机器最新时间和工件最新时间的最大值 */
 		begin = machineEndTime[machineNum] > jobEndTime[jobNum] ? machineEndTime[machineNum] : jobEndTime[jobNum];
 		end = begin + Time[jobNum][operationNum];
+		/* 更新 */
 		machineEndTime[machineNum] = end;
 		jobEndTime[jobNum] = end;
 		if (Cmax < end)
@@ -142,7 +190,13 @@ int getCmax(int* chromo, int all_operation)
 	return Cmax;
 }
 
-/* crossover */
+/**
+ * 染色体交叉（改进版）
+ *
+ * p1 父代1染色体
+ * p2 父代2染色体
+ * all_operation 总工序数
+ */
 void order_crossover(int* p1, int* p2, int all_operation)
 {
 	
@@ -151,10 +205,11 @@ void order_crossover(int* p1, int* p2, int all_operation)
 	int* child2 = NULL;
 	child1 = (int *)malloc(sizeof(int) * all_operation);
 	child2 = (int *)malloc(sizeof(int) * all_operation);
-	i = rand() % all_operation;
-	j = rand() % all_operation;
+	i = rand() % all_operation;  //随机产生交叉位置
+	j = rand() % all_operation;  //随机产生交叉位置
 	int head1 = 0;
 	int head2 = 0;
+	/* 交叉（伪） */
 	for (k = i; k < all_operation; k++) {
 		child1[head1++] = p1[k];
 	}
@@ -167,40 +222,47 @@ void order_crossover(int* p1, int* p2, int all_operation)
 		child2[head2++] = p2[k];
 	arrayCopy(p1, child1, all_operation);
 	arrayCopy(p2, child2, all_operation);
+	/* 释放内存 */
 	free(child1); free(child2); 
 
 }
 
-/* mutation */
+/**
+ * 染色体变异
+ *
+ * chromo[] 要变异的编码染色体
+ * all_operation 总工序数
+ */
 void mutation(int* chromo, int all_operation)
 {
 	int i, j;
-	i = rand() % all_operation;
+	/* 随机产生变异位置 */
+	i = rand() % all_operation;   
 	j = rand() % all_operation;
+	/* 交换随机产生的位置的编码完成随机变异 */
 	exchange(&chromo[i], &chromo[j]);
 }
 
-/* select */
-int e_select(int** population, int all_operation)
-{
-	int i;
-	int elite = 0;
-	int fitness;
-	for (i = 0; i < Max_Population; i++) {
-		fitness = getCmax(population[i], all_operation);
-		if (fitness < best_fitness) {
-			best_fitness = fitness;
-			elite = i;
-		}
-	}
-	return elite;
-}
+/**
+ * 产生一个轮赌盘
+ *
+ * population 种群
+ * all_operation 总工序数
+ * return 轮赌盘-一个概率数组
+ */
 double* roulette(int** population, int all_operation)
 {
+	/**
+	 * 因为加工时间越短适应度越高
+	 * 所有以一个加工时间到适应度的映射产生轮赌盘
+	 * 以总加工时间与单个工序加工时间的差作为轮赌盘元素
+	 * 按比例计算出每个对应的概率
+	 */
 	double* P = (double*)malloc(sizeof(double) * Max_Population);
+	/* 初始化 */
 	memset(P, 0, sizeof(P));
 	int i;
-	int Cmax_sum_differ;
+	int Cmax_sum_differ;     //总的差 
 	Cmax_sum_differ = (Max_Population - 1) * Cmax_sum;
 	P[0] = ((double)(Cmax_sum - Cmax[0])) / Cmax_sum_differ;
 	for (i = 1; i < Max_Population; i++) {
