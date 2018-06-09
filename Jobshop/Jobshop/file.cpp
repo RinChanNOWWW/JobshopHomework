@@ -2,19 +2,21 @@
  * def of file.h
  *
  * file.c
- * by Hzy
+ * by 何哲宇
  * 2018-5-14
  */
 #pragma once
 
 #include<stdio.h>
 #include <string.h>
+#include <time.h>
 #include "file.h"
 #include "gene.h"
 
 int MachineNum[MAX_MATRIX][MAX_MATRIX];       //工件i第j道工序加工所用的机器号
 int Time[MAX_MATRIX][MAX_MATRIX];             //工件i第j道工序加工所用时间
 extern int best_fitness;                      //最优解
+extern clock_t start, end;
 
 /**  没有按要求输入的临时调试输入函数
 void input(All_job * job)
@@ -37,27 +39,27 @@ void input(All_job * job)
  */
 void read_from_file(All_job * job)
 {
-	int opt;                            //选择类型
+//	int opt;                            //选择类型
 	FILE * fp;        
 	/* 基本文件操作部分 */
 	fp = fopen("input.txt", "r");
-	printf("从文件/键盘输入？\n");
-	printf("输入1从文件输入，2从键盘输入:\n");
-	scanf("%d", &opt);
+//	printf("从文件/键盘输入？\n");
+//	printf("输入1从文件输入，2从键盘输入:\n");
+/*	scanf("%d", &opt);
 	if (opt == 2) {
 		fp = stdin;                     //若选择从键盘输入，则将文件输入流改为标准输入流stdin
 		printf("请输入数据:\n");
-	}
+	}*/
 	/* 读取数据部分 */
 	fscanf(fp, "%d %d", &(*job).job_amount, &(*job).machine_amount);     
-	int count = 0;
+/*	int count = 0;
 	int jobNum;
 	while ((fscanf(fp, "%d", &jobNum) == 1) && jobNum != -1) {
 		count = 0;                           //记录此工件一共有几道工序
 		int operation = 1;                   //记录此工序为工件的第几道工序
-		char ch;
+		char ch;*/
 		/* 处理每行输入数据 */
-		while ((ch = fgetc(fp)) != '\n') {
+/*		while ((ch = fgetc(fp)) != '\n') {
 			if (ch == ' ')                   //忽略空格
 				continue;
 			else if (ch == ')')              //忽略括号 
@@ -71,6 +73,16 @@ void read_from_file(All_job * job)
 			}
 		}
 		(*job).operation_amount[jobNum - 1] = count;
+	}*/
+	int i, j;
+	int M, T;
+	for (i = 1; i <= job->job_amount; i++) {
+		for (j = 1; j <= job->machine_amount; j++) {
+			fscanf(fp, "%d %d", &M, &T);
+			MachineNum[i][j] = M + 1;
+			Time[i][j] = T;
+		}
+		job->operation_amount[i - 1] = job->machine_amount;
 	}
 	/* 关闭文件 */
 	fclose(fp);
@@ -133,23 +145,24 @@ void output(int * elite, int machine, int job, int all_operation)
 		result[machineNum][j].operation = operationNum;
 	}
 	/* 打印结果 */
-	for (i = 1; i <= machine; i++) {     //遍历每个机器的结果序列
+	for (i = 0; i <= machine; i++) {     //遍历每个机器的结果序列
 		/* 从有数据的位置开始 */
 		if (result[i][0].begin == -1)
 			continue;
-		printf("M%d", i);               //到屏幕
-		fprintf(fp, "M%d", i);          //到文件
+		printf("M%d", i - 1);               //到屏幕
+		fprintf(fp, "M%d", i - 1);          //到文件
 		/* 逐列读取 */
 		for (j = 0; j < job; j++) {
 			if (result[i][j].begin == -1)     //到没有数据的位置结束
 				break;
-			printf(" (%d,%d-%d,%d)", result[i][j].begin, result[i][j].job, result[i][j].operation, result[i][j].end);
-			fprintf(fp, " (%d,%d-%d,%d)", result[i][j].begin, result[i][j].job, result[i][j].operation, result[i][j].end);
+			printf(" (%d,%d-%d,%d)", result[i][j].begin, result[i][j].job - 1, result[i][j].operation - 1, result[i][j].end);
+			fprintf(fp, " (%d,%d-%d,%d)", result[i][j].begin, result[i][j].job - 1, result[i][j].operation - 1, result[i][j].end);
 		}
 		printf("\n");
 		fprintf(fp, "\n");
 	}
 	printf("End %d\n", best_fitness);
 	fprintf(fp, "End %d\n", best_fitness);
+	fprintf(fp, "Time used:%.3lf\n", (double)(end - start) / CLOCKS_PER_SEC);
 	fclose(fp);
 }

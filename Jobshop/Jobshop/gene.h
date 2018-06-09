@@ -2,7 +2,7 @@
  * base of GA
  * 
  * gene.h
- * by Hzy
+ * by 何哲宇
  * 2018-5-10
  */
 
@@ -13,11 +13,11 @@
 
 #include "base.h"
 
-#define Max_Length 300            //编码染色体的最大长度
-#define Max_Population 300        //最大种群数量
-#define Px 0.95                   //染色体交叉概率
+#define Max_Length 400           //编码染色体的最大长度
+#define Max_Population 400        //最大种群数量
+#define Px 0.95                  //染色体交叉概率
 #define Pm 0.25                   //染色体变异概率
-#define ITERATE 1500              //种群进化（迭代）次数
+#define ITERATE 5000           //种群进化（迭代）次数
 
 /**
  * 创建一个编码染色体

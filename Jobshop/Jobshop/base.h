@@ -2,21 +2,20 @@
  * 此程序需要的基本的数据结构与函数操作
  *
  * base.h
- * by Hzy
+ * by 何哲宇
  * 2018-5-10
  */
 
 #ifndef _BASE_H_
 #define _BASE_H_
 
-#define MAX_LEN 200         //数组的最大长度
-#define MAX_MATRIX 200      //矩阵的最大规模
+#define MAX_MATRIX 150      //矩阵的最大规模
 
 /* 存储输入的基本数据 */
 typedef struct {
 	int machine_amount;              //总共需要的机器个数
 	int job_amount;                  //总共的工件个数
-	int operation_amount[MAX_LEN];   //每个工件的工序数
+	int operation_amount[MAX_MATRIX];   //每个工件的工序数
 } All_job;
 
 /* 存储输出的基本数据（单个工序的） */

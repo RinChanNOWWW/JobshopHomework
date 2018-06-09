@@ -2,7 +2,7 @@
  * def of gene.h
  *
  * gene.c
- * by Hzy
+ * by 何哲宇
  * 2018-5-12
  */
 
@@ -12,14 +12,17 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+#include <math.h>
 #include "gene.h"
 
 extern int MachineNum[MAX_MATRIX][MAX_MATRIX];     //见file.cpp
 extern int Time[MAX_MATRIX][MAX_MATRIX];           //见file.cpp
 int Cmax[Max_Length];                              //一个种群每个个体的加工时间
-int Cmax_sum;                                      //总加工时间
+long long Cmax_sum;                                      //总加工时间
 int best_fitness = INT_MAX;                        //最优解
 int elite;                                         //精英所在位置
+int Cmax_max;
+int elite_chromo[Max_Length];
 
 /**
  * 创建一个编码染色体
@@ -101,11 +104,14 @@ int** nextPopulation(int** oldpopulation, int machine, int job, int all_operatio
 	int runtime;
 	for (i = 0; i < Max_Population; i++) {
 		Cmax[i] = getCmax(oldpopulation[i], all_operation);
-		Cmax_sum += Cmax[i];
+		Cmax_sum = Cmax_sum + Cmax[i];
 		if (Cmax[i] < best_fitness) {        //选出精英
 			best_fitness = Cmax[i];          //更新最优解
 			elite = i;
+			arrayCopy(elite_chromo, oldpopulation[i], all_operation);
 		}
+		if (Cmax[i] > Cmax_max)
+			Cmax_max = Cmax[i];
 	}
 	/* 保留精英 */
 	arrayCopy(nextPopulation[0], oldpopulation[elite], all_operation);
@@ -130,10 +136,15 @@ int** nextPopulation(int** oldpopulation, int machine, int job, int all_operatio
 	free(P);
 	/* 按概率交叉 */
 	double p;
-	for (i = 1; i < Max_Population - 1; i = i + 2) {
+	int choice, cnt = 0;
+	for (i = 1; i < Max_Population ; i = i + 1) {
 		p = ((double)rand()) / RAND_MAX;       //随机生成交叉概率
 		if (p < Px) {   /* 前后两两交叉 */
-			order_crossover(nextPopulation[i], nextPopulation[i + 1], all_operation);
+			cnt++;
+			if (cnt % 2 == 0)
+				order_crossover(nextPopulation[i], nextPopulation[choice], all_operation);
+			else
+				choice = i;
 		}
 			
 	}
@@ -239,6 +250,9 @@ void mutation(int* chromo, int all_operation)
 	/* 随机产生变异位置 */
 	i = rand() % all_operation;   
 	j = rand() % all_operation;
+	while (i == j || chromo[i] == chromo[j]) {
+		i = rand() % all_operation;
+	}
 	/* 交换随机产生的位置的编码完成随机变异 */
 	exchange(&chromo[i], &chromo[j]);
 }
@@ -261,12 +275,33 @@ double* roulette(int** population, int all_operation)
 	double* P = (double*)malloc(sizeof(double) * Max_Population);
 	/* 初始化 */
 	memset(P, 0, sizeof(P));
+	int ave;
 	int i;
-	int Cmax_sum_differ;     //总的差 
-	Cmax_sum_differ = (Max_Population - 1) * Cmax_sum;
-	P[0] = ((double)(Cmax_sum - Cmax[0])) / Cmax_sum_differ;
-	for (i = 1; i < Max_Population; i++) {
-		P[i] = P[i - 1] + ((double)(Cmax_sum - Cmax[i])) / Cmax_sum_differ;
+	int temp;
+	int fitness[Max_Length] = { 0 };
+	int fit_sum = 0;
+	ave = Cmax_sum / Max_Population;
+	temp = -1 * (ave - Cmax_max) + ave / 10;
+	
+	for (i = 0; i < Max_Population; i++) {
+		fitness[i] = ave - Cmax[i] + temp;
+//		fitness[i] = exp((double)Cmax[i]);
+		fit_sum += fitness[i];
+	}
+	double recordfit[Max_Length] = { 0 };
+	for (i = 0; i < Max_Population; i++) {
+		recordfit[i] = (double)fitness[i] / fit_sum;
+		if (i == 0)
+			P[i] = recordfit[i];
+		else
+			P[i] = P[i - 1] + recordfit[i];
+	}
+	
+	//int Cmax_sum_differ;     //总的差 
+	//Cmax_sum_differ = (Max_Population - 1) * Cmax_sum;
+	//P[0] = ((double)(Cmax_sum - Cmax[0])) / Cmax_sum_differ;
+	for (i = 0; i < Max_Population; i++) {
+	//	P[i] = P[i - 1] + ((double)(Cmax_sum - Cmax[i])) / Cmax_sum_differ;
 	}
 
 	return P;
